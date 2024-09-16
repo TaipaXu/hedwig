@@ -7,7 +7,7 @@ extern "C"
 #include <X11/Xlib.h>
 }
 
-void Core::start() const
+void Core::start(std::atomic<bool> &stopFlag) const
 {
     Display *display = XOpenDisplay(NULL);
     if (display == NULL)
@@ -29,7 +29,7 @@ void Core::start() const
     constexpr const int offsetX = 2;
     constexpr const int offsetY = 2;
 
-    while (true)
+    while (!stopFlag)
     {
         XWarpPointer(display, None, root, 0, 0, 0, 0, originalX + offsetX, originalY + offsetY);
         XFlush(display);
@@ -40,15 +40,21 @@ void Core::start() const
         XWarpPointer(display, None, root, 0, 0, 0, 0, originalX, originalY);
         XFlush(display);
 
-        constexpr const std::chrono::seconds delay = std::chrono::seconds(10);
-        std::this_thread::sleep_for(delay);
+        for (size_t i = 0; i < 20; i++)
+        {
+            if (stopFlag)
+            {
+                break;
+            }
+            constexpr const std::chrono::milliseconds delay = std::chrono::milliseconds(500);
+            std::this_thread::sleep_for(delay);
+        }
     }
 
     XCloseDisplay(display);
 }
 
-std::future<void> Core::startAsync() const
+std::future<void> Core::startAsync(std::atomic<bool> &stopFlag) const
 {
-    return std::async(std::launch::async, [this]()
-                      { this->start(); });
+    return std::async(std::launch::async, [this, &stopFlag]() { this->start(stopFlag); });
 }
