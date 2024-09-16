@@ -1,0 +1,9 @@
+{
+    "cmake.configureArgs": [
+        "-DCMAKE_TOOLCHAIN_FILE=${env:VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+    ],
+    "files.associations": {
+        "cstdlib": "cpp",
+        "stdexcept": "cpp"
+    }
+}
