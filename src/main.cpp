@@ -4,7 +4,8 @@
 int main(int argc, char *argv[])
 {
     constexpr const Core core;
-    core.start();
+    std::future<void> future = core.startAsync();
+    future.wait();
 
     return EXIT_SUCCESS;
 }

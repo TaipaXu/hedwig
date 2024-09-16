@@ -46,3 +46,9 @@ void Core::start() const
 
     XCloseDisplay(display);
 }
+
+std::future<void> Core::startAsync() const
+{
+    return std::async(std::launch::async, [this]()
+                      { this->start(); });
+}

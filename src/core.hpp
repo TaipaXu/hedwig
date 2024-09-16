@@ -1,5 +1,7 @@
 #pragma once
 
+#include <future>
+
 class Core
 {
 public:
@@ -7,6 +9,7 @@ public:
     ~Core() = default;
 
     void start() const;
+    std::future<void> startAsync() const;
 
 private:
 };
