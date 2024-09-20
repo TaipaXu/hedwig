@@ -5,6 +5,7 @@
 #include <atomic>
 #include <future>
 #include <cstdlib>
+#include <regex>
 #include <boost/program_options.hpp>
 #include "./config.hpp"
 
@@ -25,14 +26,38 @@ std::future<void> printRunningAsync(std::atomic<bool> &stopFlag)
     });
 }
 
+int parseDuration(const std::string &duration)
+{
+    const std::regex pattern("(\\d+)([smh])");
+    std::smatch matches;
+    if (std::regex_match(duration, matches, pattern))
+    {
+        const int value = std::stoi(matches[1]);
+        const char unit = matches[2].str()[0];
+        switch (unit)
+        {
+        case 's':
+            return value;
+        case 'm':
+            return value * 60;
+        case 'h':
+            return value * 60 * 60;
+        default:
+            throw std::invalid_argument("Invalid time unit");
+        }
+    }
+    throw std::invalid_argument("Invalid duration format");
+}
+
 int main(int argc, char *argv[])
 {
     namespace po = boost::program_options;
 
     po::options_description optionsDescription("Allowed options");
-    optionsDescription.add_options()("help,h", "Show help message")                 // help option
-        ("version,v", "Show version information")                                   // version option
-        ("command,c", po::value<std::vector<std::string>>(), "Command to execute"); // command option
+    optionsDescription.add_options()("help,h", "Show help message")                                        // help option
+        ("version,v", "Show version information")                                                          // version option
+        ("command,c", po::value<std::vector<std::string>>(), "Command to execute")                         // command option
+        ("duration,d", po::value<std::string>(), "Duration to prevent screen sleep (e.g., 30s, 10m, 1h)"); // duration option
 
     po::positional_options_description positionalOptionsDescription;
     positionalOptionsDescription.add("command", -1);
@@ -79,8 +104,16 @@ int main(int argc, char *argv[])
     }
     else
     {
-        std::cout << "Press Enter to stop..." << std::endl;
-        std::cin.get();
+        if (variablesMap.count("duration"))
+        {
+            const int durationSeconds = parseDuration(variablesMap["duration"].as<std::string>());
+            std::this_thread::sleep_for(std::chrono::seconds(durationSeconds));
+        }
+        else
+        {
+            std::cout << "Press Enter to stop..." << std::endl;
+            std::cin.get();
+        }
         stopFlag = true;
     }
 
