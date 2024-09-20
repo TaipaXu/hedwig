@@ -1,5 +1,6 @@
 {
-    "dependencies": [
-        "libx11"
-    ]
+  "dependencies": [
+    "libx11",
+    "boost-program-options"
+  ]
 }

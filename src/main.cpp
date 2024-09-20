@@ -4,6 +4,8 @@
 #include <atomic>
 #include <future>
 #include <cstdlib>
+#include <boost/program_options.hpp>
+#include "./config.hpp"
 
 constexpr const char *carriageReturn = "\r";
 
@@ -24,6 +26,40 @@ std::future<void> printRunningAsync(std::atomic<bool> &stopFlag)
 
 int main(int argc, char *argv[])
 {
+    namespace po = boost::program_options;
+
+    po::options_description optionsDescription("Allowed options");
+    optionsDescription.add_options()("help,h", "Show help message") // help option
+        ("version,v", "Show version information");                  // version option
+
+    po::positional_options_description positionalOptionsDescription;
+
+    po::variables_map variablesMap;
+    try
+    {
+        po::store(po::command_line_parser(argc, argv)
+                      .options(optionsDescription)
+                      .positional(positionalOptionsDescription)
+                      .run(),
+                  variablesMap);
+        po::notify(variablesMap);
+    }
+    catch (std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    if (variablesMap.count("help"))
+    {
+        std::cout << optionsDescription << std::endl;
+        return EXIT_SUCCESS;
+    }
+    else if (variablesMap.count("version"))
+    {
+        std::cout << DISPLAY_NAME << " " << PROJECT_VERSION << std::endl;
+        return EXIT_SUCCESS;
+    }
     constexpr const Core core;
 
     std::atomic<bool> stopFlag(false);
