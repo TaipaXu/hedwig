@@ -1,5 +1,6 @@
 #include "core.hpp"
 #include <iostream>
+#include <numeric>
 #include <vector>
 #include <atomic>
 #include <future>
@@ -29,10 +30,12 @@ int main(int argc, char *argv[])
     namespace po = boost::program_options;
 
     po::options_description optionsDescription("Allowed options");
-    optionsDescription.add_options()("help,h", "Show help message") // help option
-        ("version,v", "Show version information");                  // version option
+    optionsDescription.add_options()("help,h", "Show help message")                 // help option
+        ("version,v", "Show version information")                                   // version option
+        ("command,c", po::value<std::vector<std::string>>(), "Command to execute"); // command option
 
     po::positional_options_description positionalOptionsDescription;
+    positionalOptionsDescription.add("command", -1);
 
     po::variables_map variablesMap;
     try
@@ -60,15 +63,26 @@ int main(int argc, char *argv[])
         std::cout << DISPLAY_NAME << " " << PROJECT_VERSION << std::endl;
         return EXIT_SUCCESS;
     }
+
     constexpr const Core core;
 
     std::atomic<bool> stopFlag(false);
     std::future<void> coreFuture = core.startAsync(stopFlag);
     std::future<void> printRunningFuture = printRunningAsync(stopFlag);
 
-    std::cout << "Press Enter to stop..." << std::endl;
-    std::cin.get();
-    stopFlag = true;
+    if (variablesMap.count("command")) [[likely]]
+    {
+        const std::vector<std::string> arguments = variablesMap["command"].as<std::vector<std::string>>();
+        const std::string command = std::accumulate(arguments.begin(), arguments.end(), std::string(), [](const std::string &a, const std::string &b) { return a + " " + b; });
+        const int result = std::system(command.c_str());
+        stopFlag = true;
+    }
+    else
+    {
+        std::cout << "Press Enter to stop..." << std::endl;
+        std::cin.get();
+        stopFlag = true;
+    }
 
     coreFuture.wait();
     printRunningFuture.wait();
