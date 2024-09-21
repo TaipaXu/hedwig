@@ -9,8 +9,10 @@ public:
     constexpr Core() = default;
     ~Core() = default;
 
-    void start(std::atomic<bool> &stopFlag) const;
-    std::future<void> startAsync(std::atomic<bool> &stopFlag) const;
+    void start() const;
+    std::future<void> startAsync() const;
+    void stop();
 
 private:
+    mutable std::atomic<bool> stopFlag = false;
 };

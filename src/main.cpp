@@ -91,10 +91,10 @@ int main(int argc, char *argv[])
         return EXIT_SUCCESS;
     }
 
-    constexpr const Core core;
+    Core core;
 
     std::atomic<bool> stopFlag(false);
-    std::future<void> coreFuture = core.startAsync(stopFlag);
+    std::future<void> coreFuture = core.startAsync();
     std::future<void> printRunningFuture = printRunningAsync(stopFlag);
 
     if (variablesMap.count("command")) [[likely]]
@@ -103,6 +103,7 @@ int main(int argc, char *argv[])
         const std::string command = std::accumulate(arguments.begin(), arguments.end(), std::string(), [](const std::string &a, const std::string &b) { return a + " " + b; });
         const int result = std::system(command.c_str());
         stopFlag = true;
+        core.stop();
     }
     else
     {
@@ -117,6 +118,7 @@ int main(int argc, char *argv[])
             std::cin.get();
         }
         stopFlag = true;
+        core.stop();
     }
 
     coreFuture.wait();

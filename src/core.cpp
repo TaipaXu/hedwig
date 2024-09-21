@@ -7,7 +7,7 @@ extern "C"
 #include <X11/Xlib.h>
 }
 
-void Core::start(std::atomic<bool> &stopFlag) const
+void Core::start() const
 {
     Display *display = XOpenDisplay(NULL);
     if (display == NULL)
@@ -54,7 +54,12 @@ void Core::start(std::atomic<bool> &stopFlag) const
     XCloseDisplay(display);
 }
 
-std::future<void> Core::startAsync(std::atomic<bool> &stopFlag) const
+std::future<void> Core::startAsync() const
 {
-    return std::async(std::launch::async, [this, &stopFlag]() { this->start(stopFlag); });
+    return std::async(std::launch::async, [this]() { this->start(); });
+}
+
+void Core::stop()
+{
+    stopFlag = true;
 }
