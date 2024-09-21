@@ -28,25 +28,27 @@ std::future<void> printRunningAsync(std::atomic<bool> &stopFlag)
 
 int parseDuration(const std::string &duration)
 {
-    const std::regex pattern("(\\d+)([smh])");
+    const std::regex pattern(R"((?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?)");
     std::smatch matches;
     if (std::regex_match(duration, matches, pattern))
     {
-        const int value = std::stoi(matches[1]);
-        const char unit = matches[2].str()[0];
-        switch (unit)
+        int totalSeconds = 0;
+
+        if (matches[1].matched)
         {
-        case 's':
-            return value;
-        case 'm':
-            return value * 60;
-        case 'h':
-            return value * 60 * 60;
-        default:
-            throw std::invalid_argument("Invalid time unit");
+            totalSeconds += std::stoi(matches[1]) * 60 * 60;
         }
+        if (matches[2].matched)
+        {
+            totalSeconds += std::stoi(matches[2]) * 60;
+        }
+        if (matches[3].matched)
+        {
+            totalSeconds += std::stoi(matches[3]);
+        }
+        return totalSeconds;
     }
-    throw std::invalid_argument("Invalid duration format");
+    throw std::invalid_argument("Invalid duration format. Supported formats: 30s, 10m, 1h, 1h30m, 1h30m20s, etc.");
 }
 
 int main(int argc, char *argv[])
@@ -54,10 +56,10 @@ int main(int argc, char *argv[])
     namespace po = boost::program_options;
 
     po::options_description optionsDescription("Allowed options");
-    optionsDescription.add_options()("help,h", "Show help message")                                        // help option
-        ("version,v", "Show version information")                                                          // version option
-        ("command,c", po::value<std::vector<std::string>>(), "Command to execute")                         // command option
-        ("duration,d", po::value<std::string>(), "Duration to prevent screen sleep (e.g., 30s, 10m, 1h)"); // duration option
+    optionsDescription.add_options()("help,h", "Show help message")                                                         // help option
+        ("version,v", "Show version information")                                                                           // version option
+        ("command,c", po::value<std::vector<std::string>>(), "Command to execute")                                          // command option
+        ("duration,d", po::value<std::string>(), "Duration to prevent screen sleep (e.g., 30s, 10m, 1h, 1h30m, 1h30m20s)"); // duration option
 
     po::positional_options_description positionalOptionsDescription;
     positionalOptionsDescription.add("command", -1);
