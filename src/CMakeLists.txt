@@ -10,6 +10,9 @@ set(SOURCES
     main.cpp
     core.hpp
     core.cpp
+
+    playground.hpp
+    playground.cpp
 )
 
 add_executable(${TARGET} ${SOURCES})

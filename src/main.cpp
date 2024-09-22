@@ -8,23 +8,8 @@
 #include <regex>
 #include <boost/program_options.hpp>
 #include "./config.hpp"
-
-constexpr const char *carriageReturn = "\r";
-
-std::future<void> printRunningAsync(std::atomic<bool> &stopFlag)
-{
-    return std::async(std::launch::async, [&stopFlag]() {
-        std::vector<std::string> symbols = {"|", "/", "-", "\\"};
-        int index = 0;
-
-        while (!stopFlag)
-        {
-            std::cout << "running " << symbols[index] << carriageReturn << std::flush;
-            index = (index + 1) % symbols.size();
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
-        }
-    });
-}
+#include "./core.hpp"
+#include "./playground.hpp"
 
 int parseDuration(const std::string &duration)
 {
@@ -92,18 +77,18 @@ int main(int argc, char *argv[])
     }
 
     Core core;
+    Playground playground;
 
-    std::atomic<bool> stopFlag(false);
     std::future<void> coreFuture = core.startAsync();
-    std::future<void> printRunningFuture = printRunningAsync(stopFlag);
+    std::future<void> playgroundFuture = playground.startAsync();
 
     if (variablesMap.count("command")) [[likely]]
     {
         const std::vector<std::string> arguments = variablesMap["command"].as<std::vector<std::string>>();
         const std::string command = std::accumulate(arguments.begin(), arguments.end(), std::string(), [](const std::string &a, const std::string &b) { return a + " " + b; });
         const int result = std::system(command.c_str());
-        stopFlag = true;
         core.stop();
+        playground.stop();
     }
     else
     {
@@ -117,12 +102,12 @@ int main(int argc, char *argv[])
             std::cout << "Press Enter to stop..." << std::endl;
             std::cin.get();
         }
-        stopFlag = true;
         core.stop();
+        playground.stop();
     }
 
     coreFuture.wait();
-    printRunningFuture.wait();
+    playgroundFuture.wait();
 
     std::cout << "Task complete!" << std::endl;
 
