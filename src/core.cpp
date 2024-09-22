@@ -1,65 +1,29 @@
 #include "./core.hpp"
 #include <iostream>
-#include <thread>
-#include <chrono>
-extern "C"
-{
-#include <X11/Xlib.h>
-}
+#include <sys/wait.h>
 
-void Core::start() const
+void Core::startAsync() const
 {
-    Display *display = XOpenDisplay(NULL);
-    if (display == NULL)
+    inhibitPid = fork();
+    if (inhibitPid == 0)
     {
-        std::cerr << "Cannot open display" << std::endl;
+        execlp("systemd-inhibit", "systemd-inhibit", "--what=idle", "--who=my_program", "--why=Prevent screen locking", "sleep", "infinity", NULL);
+        std::cerr << "Failed to start systemd-inhibit" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    else if (inhibitPid < 0)
+    {
+        std::cerr << "Failed to fork process for systemd-inhibit" << std::endl;
         return;
     }
-
-    const Window root = XDefaultRootWindow(display);
-
-    int originalX;
-    int originalY;
-    Window window;
-    int winX;
-    int winY;
-    unsigned int mask_return;
-    XQueryPointer(display, root, &window, &window, &originalX, &originalY, &winX, &winY, &mask_return);
-
-    constexpr const int offsetX = 2;
-    constexpr const int offsetY = 2;
-
-    while (!stopFlag)
-    {
-        XWarpPointer(display, None, root, 0, 0, 0, 0, originalX + offsetX, originalY + offsetY);
-        XFlush(display);
-
-        constexpr const std::chrono::milliseconds recoveryDelay = std::chrono::milliseconds(5);
-        std::this_thread::sleep_for(recoveryDelay);
-
-        XWarpPointer(display, None, root, 0, 0, 0, 0, originalX, originalY);
-        XFlush(display);
-
-        for (size_t i = 0; i < 20; i++)
-        {
-            if (stopFlag)
-            {
-                break;
-            }
-            constexpr const std::chrono::milliseconds delay = std::chrono::milliseconds(500);
-            std::this_thread::sleep_for(delay);
-        }
-    }
-
-    XCloseDisplay(display);
-}
-
-std::future<void> Core::startAsync() const
-{
-    return std::async(std::launch::async, [this]() { this->start(); });
 }
 
 void Core::stop()
 {
-    stopFlag = true;
+    if (inhibitPid > 0)
+    {
+        kill(inhibitPid, SIGTERM);
+        waitpid(inhibitPid, NULL, 0);
+        inhibitPid = 0;
+    }
 }

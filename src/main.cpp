@@ -79,14 +79,14 @@ int main(int argc, char *argv[])
     Core core;
     Playground playground;
 
-    std::future<void> coreFuture = core.startAsync();
+    core.startAsync();
     std::future<void> playgroundFuture = playground.startAsync();
 
     if (variablesMap.count("command")) [[likely]]
     {
         const std::vector<std::string> arguments = variablesMap["command"].as<std::vector<std::string>>();
         const std::string command = std::accumulate(arguments.begin(), arguments.end(), std::string(), [](const std::string &a, const std::string &b) { return a + " " + b; });
-        const int result = std::system(command.c_str());
+        std::system(command.c_str());
         core.stop();
         playground.stop();
     }
@@ -106,7 +106,6 @@ int main(int argc, char *argv[])
         playground.stop();
     }
 
-    coreFuture.wait();
     playgroundFuture.wait();
 
     std::cout << "Task complete!" << std::endl;

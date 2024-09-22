@@ -9,10 +9,9 @@ public:
     constexpr Core() = default;
     ~Core() = default;
 
-    void start() const;
-    std::future<void> startAsync() const;
+    void startAsync() const;
     void stop();
 
 private:
-    mutable std::atomic<bool> stopFlag = false;
+    mutable pid_t inhibitPid = 0;
 };

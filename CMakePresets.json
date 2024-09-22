@@ -7,6 +7,8 @@
             "binaryDir": "${sourceDir}/build/debug",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_MAKE_PROGRAM": "/usr/bin/make",
+                "CMAKE_CXX_COMPILER": "/usr/bin/g++",
                 "CMAKE_CXX_FLAGS_RELEASE": "-Wall -Wextra",
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
             }
@@ -17,6 +19,8 @@
             "binaryDir": "${sourceDir}/build/release",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_MAKE_PROGRAM": "/usr/bin/make",
+                "CMAKE_CXX_COMPILER": "/usr/bin/g++",
                 "CMAKE_CXX_FLAGS_RELEASE": "-Wall -Wextra",
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
             }
