@@ -1,7 +1,8 @@
 #pragma once
 
-#include <atomic>
-#include <future>
+#if defined __linux__ || defined __APPLE__
+#include <sys/types.h>
+#endif
 
 class Core
 {
@@ -12,6 +13,8 @@ public:
     void startAsync() const;
     void stop();
 
+#if defined __linux__ || defined __APPLE__
 private:
     mutable pid_t inhibitPid = 0;
+#endif
 };

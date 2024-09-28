@@ -19,6 +19,15 @@ cmake --preset=unix-release
 cmake --build build/release -j $(nproc)
 ```
 
+### Windows
+
+```cmd
+git clone https://github.com/TaipaXu/hedwig.git && cd hedwig
+vcpkg install
+cmake --preset=win-release
+cmake --build build --config Release -j ([Environment]::ProcessorCount)
+```
+
 # License
 
 [GPL-3.0](LICENSE)
