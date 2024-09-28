@@ -2,7 +2,7 @@
     "version": 2,
     "configurePresets": [
         {
-            "name": "linux-x-server-debug",
+            "name": "unix-debug",
             "generator": "Unix Makefiles",
             "binaryDir": "${sourceDir}/build/debug",
             "cacheVariables": {
@@ -14,7 +14,7 @@
             }
         },
         {
-            "name": "linux-x-server-release",
+            "name": "unix-release",
             "generator": "Unix Makefiles",
             "binaryDir": "${sourceDir}/build/release",
             "cacheVariables": {

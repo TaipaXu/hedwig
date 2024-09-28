@@ -1,5 +1,7 @@
 #include "./core.hpp"
 #include <iostream>
+#include <unistd.h>
+#include <signal.h>
 #include <sys/wait.h>
 
 void Core::startAsync() const
@@ -7,13 +9,20 @@ void Core::startAsync() const
     inhibitPid = fork();
     if (inhibitPid == 0)
     {
-        execlp("systemd-inhibit", "systemd-inhibit", "--what=idle", "--who=my_program", "--why=Prevent screen locking", "sleep", "infinity", NULL);
-        std::cerr << "Failed to start systemd-inhibit" << std::endl;
+#ifdef __linux__
+        execlp("systemd-inhibit", "systemd-inhibit", "sleep", "infinity", NULL);
+        std::cerr << "Failed to start systemd-inhibit on Linux" << std::endl;
+#elif __APPLE__
+        execlp("caffeinate", "caffeinate", NULL);
+        std::cerr << "Failed to start caffeinate on macOS" << std::endl;
+#else
+        std::cerr << "Unsupported platform" << std::endl;
+#endif
         exit(EXIT_FAILURE);
     }
     else if (inhibitPid < 0)
     {
-        std::cerr << "Failed to fork process for systemd-inhibit" << std::endl;
+        std::cerr << "Failed to fork process" << std::endl;
         return;
     }
 }
