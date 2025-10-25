@@ -8,10 +8,11 @@ constexpr const char *carriageReturn = "\r";
 
 void Playground::start() const
 {
+    stopFlag.store(false, std::memory_order_relaxed);
     std::vector<std::string> symbols = {"|", "/", "-", "\\"};
     int index = 0;
 
-    while (!stopFlag)
+    while (!stopFlag.load(std::memory_order_relaxed))
     {
         std::cout << "running " << symbols[index] << carriageReturn << std::flush;
         index = (index + 1) % symbols.size();
@@ -26,5 +27,5 @@ std::future<void> Playground::startAsync() const
 
 void Playground::stop()
 {
-    stopFlag = true;
+    stopFlag.store(true, std::memory_order_relaxed);
 }
