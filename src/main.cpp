@@ -4,6 +4,8 @@
 #include <vector>
 #include <atomic>
 #include <future>
+#include <thread>
+#include <chrono>
 #include <cstdlib>
 #include <regex>
 #include <boost/program_options.hpp>
